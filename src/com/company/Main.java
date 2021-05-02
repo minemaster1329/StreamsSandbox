@@ -20,6 +20,8 @@ public class Main {
             System.out.println(data_1_collection.getArithmeticAverage());
             System.out.println(data_1_collection.getQuadraticAverage());
             System.out.println(data_1_collection.getGeometricAverage());
+            System.out.println(data_1_collection.getHarmonicAverage());
+            System.out.println(data_1_collection.getMedian());
 	    }
 	    catch (Exception e){
 	        System.out.println(e.getMessage());
