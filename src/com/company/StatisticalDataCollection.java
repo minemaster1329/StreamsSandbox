@@ -2,8 +2,10 @@ package com.company;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // TODO: 02.05.2021 Implement common deviation 
 // TODO: 02.05.2021 Implement common deviation from median 
@@ -16,17 +18,18 @@ import java.util.TreeSet;
 // TODO: 02.05.2021 Implement excess
 
 public class StatisticalDataCollection {
-    TreeSet<BigDecimal> _dataSet;
+    ArrayList<BigDecimal> _dataSet;
     int precision;
 
     public StatisticalDataCollection(int precision){
-        _dataSet = new TreeSet<>();
+        _dataSet = new ArrayList<>();
         this.precision = precision;
     }
 
     public void addNewItemToCollection(BigDecimal item){
         item = item.setScale(precision, RoundingMode.HALF_UP);
         _dataSet.add(item);
+        _dataSet.sort(BigDecimal::compareTo);
     }
 
     public BigDecimal getArithmeticAverage(){
@@ -61,8 +64,7 @@ public class StatisticalDataCollection {
         int median_index = collection_size/2;
 
         if (_dataSet.size() % 2 == 0){
-            ArrayList<BigDecimal> valuesArray = new ArrayList<>(_dataSet);
-            output = valuesArray.get(median_index).add(valuesArray.get(median_index+1)).divide(new BigDecimal(_dataSet.size()), precision, RoundingMode.HALF_UP);
+            output = _dataSet.get(median_index).add(_dataSet.get(median_index+1)).divide(new BigDecimal(2), precision, RoundingMode.HALF_UP);
         }
         else {
             output = (BigDecimal) _dataSet.toArray()[median_index];
@@ -71,14 +73,38 @@ public class StatisticalDataCollection {
         return output.setScale(precision, RoundingMode.HALF_UP);
     }
 
-    // TODO: 02.05.2021 Implement median function
     public ArrayList<BigDecimal> getMode(){
-        throw new UnsupportedOperationException();
+        Map<BigDecimal, Integer> list2 = new HashMap<>();
+        for (int i = 0; i < _dataSet.size(); i++){
+            BigDecimal bd = _dataSet.get(i);
+            Integer item_count = list2.get(bd);
+            list2.put(bd, (item_count == null) ? 1 : item_count + 1);
+        }
+
+        Integer max_count = list2.values().stream().max(Integer::compare).orElseThrow();
+        return list2.entrySet().stream().filter(tpl -> tpl.getValue() == max_count).map(Map.Entry::getKey).distinct().collect(Collectors.toCollection(ArrayList::new));
     }
 
-    // TODO: 02.05.2021 Implement quartile calculation function
+    // TODO: 03.05.2021 finish implementing quartile function
     public BigDecimal getQuartile(int quartile){
-        throw new UnsupportedOperationException();
+        Integer quartile_pos = 0;
+        BigDecimal output;
+        if (_dataSet.size() % 4 == 0){
+            quartile_pos = _dataSet.size()/4*quartile+1;
+            output = _dataSet.get(quartile_pos).add(_dataSet.get(quartile_pos + 1)).divide(new BigDecimal(2), precision, RoundingMode.HALF_UP);
+        }
+        else {
+            if (_dataSet.size() % 2 == 0 && quartile == 2){
+                quartile_pos = _dataSet.size()/2+1;
+                output = _dataSet.get(quartile_pos).add(_dataSet.get(quartile_pos + 1)).divide(new BigDecimal(2), precision, RoundingMode.HALF_UP);
+            }
+            else {
+                quartile_pos = _dataSet.size()/4*quartile+1;
+                output = _dataSet.get(quartile_pos);
+            }
+        }
+        _dataSet.sort(BigDecimal::compareTo);
+        return output;
     }
 
     // TODO: 02.05.2021 Implement Unbias Wariancy function
