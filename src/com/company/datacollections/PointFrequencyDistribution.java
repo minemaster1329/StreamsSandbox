@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     public PointFrequencyDistribution(int precision){
-        _dataSet = new ArrayList<>();
         this.precision = precision;
     }
 
@@ -17,27 +16,27 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     public BigDecimal getArithmeticAverage(){
         if (_dataSet.isEmpty()) return new BigDecimal(0);
         BigDecimal sum = _dataSet.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        return sum.divide(new BigDecimal(_dataSet.size()),precision, RoundingMode.HALF_UP);
+        return sum.divide(new BigDecimal(elements_count),precision, RoundingMode.HALF_UP);
     }
 
     @Override
     public BigDecimal getQuadraticAverage(){
         BigDecimal quadratic_sum = _dataSet.stream().reduce(BigDecimal.ZERO, (s, n)->s.add(n.pow(2)));
-        return nthRootOfBigDecimal(2, quadratic_sum.divide(new BigDecimal(_dataSet.size()), precision, RoundingMode.HALF_UP));
+        return nthRootOfBigDecimal(2, quadratic_sum.divide(new BigDecimal(elements_count), precision, RoundingMode.HALF_UP));
     }
 
     @Override
     public BigDecimal getGeometricAverage(){
         if (_dataSet.isEmpty()) return new BigDecimal(0);
         BigDecimal product = _dataSet.stream().reduce(BigDecimal.ONE, BigDecimal::multiply).setScale(precision, RoundingMode.HALF_UP);
-        product = nthRootOfBigDecimal(_dataSet.size(), product);
+        product = nthRootOfBigDecimal(elements_count, product);
         return product;
     }
 
     @Override
     public BigDecimal getHarmonicAverage(){
         BigDecimal reverses_sum = _dataSet.stream().reduce(BigDecimal.ZERO, (s,n)->s.add(BigDecimal.ONE.divide(n, precision + 3, RoundingMode.HALF_UP)));
-        BigDecimal output = new BigDecimal(_dataSet.size());
+        BigDecimal output = new BigDecimal(elements_count);
         output = output.divide(reverses_sum,precision, RoundingMode.HALF_UP);
         return output;
     }
@@ -47,10 +46,10 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
         _dataSet.sort(BigDecimal::compareTo);
         if (_dataSet.isEmpty()) return new BigDecimal(0);
         BigDecimal output;
-        int collection_size = _dataSet.size();
+        int collection_size = elements_count;
         int median_index = collection_size/2;
 
-        if (_dataSet.size() % 2 == 0){
+        if (elements_count % 2 == 0){
             output = _dataSet.get(median_index).add(_dataSet.get(median_index+1)).divide(new BigDecimal(2), precision, RoundingMode.HALF_UP);
         }
         else {
@@ -60,10 +59,9 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
         return output.setScale(precision, RoundingMode.HALF_UP);
     }
 
-    @Override
     public ArrayList<BigDecimal> getMode(){
         Map<BigDecimal, Integer> list2 = new HashMap<>();
-        for (int i = 0; i < _dataSet.size(); i++){
+        for (int i = 0; i < elements_count; i++){
             BigDecimal bd = _dataSet.get(i);
             Integer item_count = list2.get(bd);
             list2.put(bd, (item_count == null) ? 1 : item_count + 1);
@@ -77,7 +75,7 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     @Override
     public BigDecimal getQuartile(int quartile){
         _dataSet.sort(BigDecimal::compareTo);
-        int data_count = _dataSet.size();
+        int data_count = elements_count;
         BigDecimal output;
         if (data_count % 2 == 0){
             int half_of_set_size = data_count/2;
@@ -169,7 +167,7 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     @Override
     public BigDecimal getUnbiasWariancy(){
         BigDecimal average = getArithmeticAverage();
-        return _dataSet.stream().map(num -> num.subtract(average).pow(2)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(_dataSet.size()-1), precision, RoundingMode.HALF_UP);
+        return _dataSet.stream().map(num -> num.subtract(average).pow(2)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(elements_count-1), precision, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -180,7 +178,7 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     @Override
     public BigDecimal getBiasWariancy(){
         BigDecimal average = getArithmeticAverage();
-        return _dataSet.stream().map(num -> num.subtract(average).pow(2)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(_dataSet.size()), precision, RoundingMode.HALF_UP);
+        return _dataSet.stream().map(num -> num.subtract(average).pow(2)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -191,13 +189,13 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     @Override
     public BigDecimal getCommonDeviation(){
         BigDecimal average = getArithmeticAverage();
-        return _dataSet.stream().map(num->num.subtract(average).abs()).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(_dataSet.size()), precision, RoundingMode.HALF_UP);
+        return _dataSet.stream().map(num->num.subtract(average).abs()).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
     }
 
     @Override
     public BigDecimal getCommonDeviationFromMedian(){
         BigDecimal median = getMedian();
-        return _dataSet.stream().map(num->num.subtract(median).abs()).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(_dataSet.size()), precision, RoundingMode.HALF_UP);
+        return _dataSet.stream().map(num->num.subtract(median).abs()).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -228,7 +226,7 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     @Override
     public BigDecimal getKurtosis(){
         BigDecimal average = getArithmeticAverage();
-        return _dataSet.stream().map(num -> num.subtract(average).pow(4)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(_dataSet.size()), precision+5, RoundingMode.HALF_UP).divide(getUnbiasWariancy().pow(2), precision, RoundingMode.HALF_UP);
+        return _dataSet.stream().map(num -> num.subtract(average).pow(4)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(elements_count), precision+5, RoundingMode.HALF_UP).divide(getUnbiasWariancy().pow(2), precision, RoundingMode.HALF_UP);
     }
 
     @Override

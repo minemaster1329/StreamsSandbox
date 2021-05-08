@@ -11,13 +11,13 @@ public class Main {
 
     public static void main(String[] args) {
 	    try {
-            File data1 = new File("data2.txt");
+            File data1 = new File("data1.txt");
             //File data2 = new File("data2.txt");
 
             Scanner file_1_scanner = new Scanner(data1);
             //Scanner file_2_scanner = new Scanner(data2);
 
-            FrequencyDistributionsAbstract data_1_collection = new PointFrequencyDistribution(10);
+            PointFrequencyDistribution data_1_collection = new PointFrequencyDistribution(10);
             RangeFrequencyDistribution data_1_collection_range = new RangeFrequencyDistribution(10);
 
             ArrayList<BigDecimal> data_list = new ArrayList<>();
@@ -31,13 +31,13 @@ public class Main {
 
             //System.out.printf("Elements count: %d\n", data_1_collection.getDataSet().size());
             System.out.printf("Arithmetic average: %s\n",data_1_collection.getArithmeticAverage().toString());
-            /*System.out.printf("Quadratic average: %s\n",data_1_collection.getQuadraticAverage().toString());
+            System.out.printf("Quadratic average: %s\n",data_1_collection.getQuadraticAverage().toString());
             System.out.printf("Geometric average: %s\n",data_1_collection.getGeometricAverage().toString());
             System.out.printf("Harmonic average: %s\n",data_1_collection.getHarmonicAverage().toString());
             System.out.printf("Median: %s\n",data_1_collection.getMedian().toString());
             ArrayList<BigDecimal> modes = data_1_collection.getMode();
             System.out.println("Modes: "+modes);
-            System.out.println("Quartile Q1: "+data_1_collection.getQuartile(1));
+            /*System.out.println("Quartile Q1: "+data_1_collection.getQuartile(1));
             System.out.println("Quartile Q2: "+data_1_collection.getQuartile(2));
             System.out.println("Quartile Q3: "+data_1_collection.getQuartile(3));
             System.out.println("Variancy UB: "+data_1_collection.getUnbiasWariancy());
@@ -55,6 +55,11 @@ public class Main {
             */
             data_1_collection_range.generateRangeFrequencyDistribution();
             System.out.println(data_1_collection_range.getArithmeticAverage());
+            System.out.println(data_1_collection_range.getQuadraticAverage());
+            System.out.println(data_1_collection_range.getGeometricAverage());
+            System.out.println(data_1_collection_range.getHarmonicAverage());
+            System.out.println(data_1_collection_range.getMedian());
+            System.out.println(data_1_collection_range.getMode());
 	    }
 	    catch (Exception e){
 	        System.out.println(e.getMessage());

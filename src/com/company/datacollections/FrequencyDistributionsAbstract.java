@@ -7,7 +7,8 @@ import java.util.ArrayList;
 
 public abstract class FrequencyDistributionsAbstract {
     protected int precision;
-    protected ArrayList<BigDecimal> _dataSet;
+    protected int elements_count = 0;
+    final protected ArrayList<BigDecimal> _dataSet = new ArrayList<>();
 
     public ArrayList<BigDecimal> getDataSet(){
         return _dataSet;
@@ -15,6 +16,8 @@ public abstract class FrequencyDistributionsAbstract {
 
     public void addNewItemToCollection(BigDecimal item){
         _dataSet.add(item.setScale(precision, RoundingMode.HALF_UP));
+        _dataSet.sort(BigDecimal::compareTo);
+        ++elements_count;
     }
 
     public abstract BigDecimal getArithmeticAverage() throws OperationNotSupportedException;
@@ -26,8 +29,6 @@ public abstract class FrequencyDistributionsAbstract {
     public abstract BigDecimal getHarmonicAverage();
 
     public abstract BigDecimal getMedian();
-
-    public abstract ArrayList<BigDecimal> getMode();
 
     public abstract BigDecimal getQuartile(int quartile);
 
