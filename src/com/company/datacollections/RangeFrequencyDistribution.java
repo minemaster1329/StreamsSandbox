@@ -1,12 +1,11 @@
 package com.company.datacollections;
 
-import javax.naming.OperationNotSupportedException;
+import com.company.pub.Utils;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-
-import com.company.pub.Utils;
 
 public class RangeFrequencyDistribution extends FrequencyDistributionsAbstract {
 
@@ -56,16 +55,15 @@ public class RangeFrequencyDistribution extends FrequencyDistributionsAbstract {
     }
 
     @Override
-    public BigDecimal getArithmeticAverage() throws OperationNotSupportedException {
-        if (generated){
+    public BigDecimal getArithmeticAverage() {
+        if (generated) {
             BigDecimal sum = BigDecimal.ZERO.setScale(precision, RoundingMode.HALF_UP);
-            for (int i = 0; i < ranges_count; i++){
+            for (int i = 0; i < ranges_count; i++) {
                 sum = sum.add(_mids.get(i).multiply(BigDecimal.valueOf(_counts.get(i))));
             }
 
             return sum.divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
-        }
-        else throw new OperationNotSupportedException("Cannot use methods until range series not generated.");
+        } else return BigDecimal.ZERO;
     }
 
     @Override
@@ -139,82 +137,145 @@ public class RangeFrequencyDistribution extends FrequencyDistributionsAbstract {
         else return null;
     }
 
-    // TODO: 08.05.2021 implement quartile function for range frequency distribution
     @Override
     public BigDecimal getQuartile(int quartile) {
-        return null;
+        if (generated) {
+            int quartile_pos = ((elements_count) % 2 == 0 ? elements_count : elements_count + 1) * quartile / 4;
+            ArrayList<Integer> cum_sums = getCountsCumSum();
+            int range_index = Utils.getFirstMatchingItemIndex(cum_sums, count -> count > quartile_pos);
+            return _breaks.get(range_index).add(BigDecimal.valueOf(quartile_pos - cum_sums.get(range_index - 1))
+                    .multiply(range_width)
+                    .divide(BigDecimal.valueOf(_counts.get(range_index)), precision, RoundingMode.HALF_UP));
+        } else return BigDecimal.ONE;
     }
 
-    // TODO: 09.05.2021 implement UB variancy function for range frequency distribution
     @Override
     public BigDecimal getUnbiasWariancy() {
-        return null;
+        if (generated) {
+            BigDecimal average = getArithmeticAverage();
+            BigDecimal output = BigDecimal.ZERO;
+
+            for (int i = 0; i < ranges_count; i++) {
+                output = output.add(_mids.get(i).subtract(average).pow(2).multiply(BigDecimal.valueOf(_counts.get(i))));
+            }
+
+            return output.divide(BigDecimal.valueOf(elements_count - 1), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement UB standard deviation for range frequency distribution
     @Override
     public BigDecimal getUnbiasStandardDeviation() {
-        return null;
+        return (generated) ? nthRootOfBigDecimal(2, getUnbiasWariancy()) : BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement B variancy for range frequency distribution
     @Override
     public BigDecimal getBiasWariancy() {
-        return null;
+        if (generated) {
+            BigDecimal average = getArithmeticAverage();
+            BigDecimal output = BigDecimal.ZERO;
+
+            for (int i = 0; i < ranges_count; i++) {
+                output = output.add(_mids.get(i).subtract(average).pow(2).multiply(BigDecimal.valueOf(_counts.get(i))));
+            }
+
+            return output.divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement B standard deviation for range frequency distribution
     @Override
     public BigDecimal getBiasStandardDeviation() {
-        return null;
+        return (generated) ? nthRootOfBigDecimal(2, getBiasWariancy()) : BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement common deviation for range frequency distribution
     @Override
     public BigDecimal getCommonDeviation() {
-        return null;
+        if (generated) {
+            BigDecimal average = getArithmeticAverage();
+            BigDecimal output = BigDecimal.ZERO;
+            for (int i = 0; i < ranges_count; i++) {
+                output = output.add(_mids.get(i).subtract(average).abs().multiply(BigDecimal.valueOf(_counts.get(i))));
+            }
+
+            return output.divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement common deviation from median for range frequency distribution
     @Override
     public BigDecimal getCommonDeviationFromMedian() {
-        return null;
+        if (generated) {
+            BigDecimal median = getMedian();
+            BigDecimal output = BigDecimal.ZERO;
+            for (int i = 0; i < ranges_count; i++) {
+                output = output.add(_mids.get(i).subtract(median).abs().multiply(BigDecimal.valueOf(_counts.get(i))));
+            }
+
+            return output.divide(BigDecimal.valueOf(elements_count), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement quarter deviation for range frequency distribution
     @Override
     public BigDecimal getQuarterDeviation() {
-        return null;
+        if (generated) {
+            return getQuartile(3).subtract(getQuartile(1)).divide(BigDecimal.valueOf(2), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement coefficent of variation for range frequency distribution
     @Override
     public BigDecimal getCoefficentOfVariation() {
-        return null;
+        if (generated) {
+            return getUnbiasStandardDeviation().divide(getArithmeticAverage(), precision * 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).setScale(precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement positional coefficent of variation for range frequency distribution
+    @Override
+    public BigDecimal getCoefficentOfAssimetry() {
+        if (generated) {
+            BigDecimal average = getArithmeticAverage();
+            BigDecimal output = BigDecimal.ZERO;
+
+            for (int i = 0; i < ranges_count; i++) {
+                output = output.add(_mids.get(i).subtract(average).pow(3).multiply(BigDecimal.valueOf(_counts.get(i))));
+            }
+
+            return output.divide(getUnbiasStandardDeviation().pow(3).multiply(BigDecimal.valueOf(elements_count)), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
+    }
+
     @Override
     public BigDecimal getPositionalCoefficentOfVariation() {
-        return null;
+        if (generated) {
+            BigDecimal quartile1 = getQuartile(1);
+            BigDecimal quartile3 = getQuartile(3);
+
+            return quartile3.subtract(quartile1).divide(quartile3.add(quartile1), precision + 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).setScale(precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement skewness for range frequency distribution
     @Override
     public BigDecimal getSkewness() {
-        return null;
+        if (generated) {
+            return getQuartile(3).add(getQuartile(1))
+                    .subtract(getMedian().multiply(BigDecimal.valueOf(2)))
+                    .divide(BigDecimal.valueOf(2).multiply(getQuarterDeviation()), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement kurtosis for range frequency distribution
     @Override
     public BigDecimal getKurtosis() {
-        return null;
+        if (generated) {
+            BigDecimal average = getArithmeticAverage();
+            BigDecimal output = BigDecimal.ZERO;
+            for (int i = 0; i < ranges_count; i++) {
+                output = output.add(_mids.get(i).subtract(average).pow(4).multiply(BigDecimal.valueOf(_counts.get(i))));
+            }
+
+            return output.divide(getUnbiasStandardDeviation().pow(4).multiply(BigDecimal.valueOf(elements_count)), precision, RoundingMode.HALF_UP);
+        } else return BigDecimal.ZERO;
     }
 
-    // TODO: 09.05.2021 implement excess for range frequency distribution
     @Override
     public BigDecimal getExcess() {
-        return null;
+        return (generated) ? getKurtosis().subtract(BigDecimal.valueOf(3)) : BigDecimal.ZERO;
     }
 
     private void clearRanges(){

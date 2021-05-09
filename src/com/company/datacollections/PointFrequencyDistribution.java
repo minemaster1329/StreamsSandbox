@@ -199,19 +199,25 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     }
 
     @Override
-    public BigDecimal getQuarterDeviation(){
+    public BigDecimal getQuarterDeviation() {
         BigDecimal quartile1 = getQuartile(1);
         BigDecimal quartile3 = getQuartile(3);
         return quartile3.subtract(quartile1).divide(BigDecimal.valueOf(2), precision, RoundingMode.HALF_UP);
     }
 
     @Override
-    public BigDecimal getCoefficentOfVariation(){
+    public BigDecimal getCoefficentOfVariation() {
         return getUnbiasStandardDeviation().multiply(BigDecimal.valueOf(100)).divide(getArithmeticAverage(), precision, RoundingMode.HALF_UP);
     }
 
     @Override
-    public BigDecimal getPositionalCoefficentOfVariation(){
+    public BigDecimal getCoefficentOfAssimetry() {
+        BigDecimal average = getArithmeticAverage();
+        return _dataSet.stream().map(num -> num.subtract(average).pow(3)).reduce(BigDecimal.ZERO, BigDecimal::add).divide(getUnbiasStandardDeviation().pow(3).multiply(BigDecimal.valueOf(elements_count)), precision, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public BigDecimal getPositionalCoefficentOfVariation() {
         BigDecimal quartile1 = getQuartile(1);
         BigDecimal quartile3 = getQuartile(3);
 
@@ -219,8 +225,10 @@ public class PointFrequencyDistribution extends FrequencyDistributionsAbstract {
     }
 
     @Override
-    public BigDecimal getSkewness(){
-        return getQuartile(1).add(getQuartile(3)).subtract(getMedian().multiply(BigDecimal.valueOf(2))).divide(getQuarterDeviation().multiply(BigDecimal.valueOf(2)), precision, RoundingMode.HALF_UP);
+    public BigDecimal getSkewness() {
+        return getQuartile(1).add(getQuartile(3))
+                .subtract(getMedian().multiply(BigDecimal.valueOf(2)))
+                .divide(BigDecimal.valueOf(2).multiply(getQuarterDeviation()), precision, RoundingMode.HALF_UP);
     }
 
     @Override
