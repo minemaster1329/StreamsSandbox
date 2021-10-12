@@ -1,7 +1,7 @@
 package com.company;
 
-import com.company.datacollections.PointFrequencyDistribution;
-import com.company.datacollections.RangeFrequencyDistribution;
+import com.company.bd_datacollections.PointFrequencyDistribution;
+import com.company.bd_datacollections.RangeFrequencyDistribution;
 
 import java.io.File;
 import java.math.BigDecimal;

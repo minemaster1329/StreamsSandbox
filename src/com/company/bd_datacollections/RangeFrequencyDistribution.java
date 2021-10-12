@@ -1,4 +1,4 @@
-package com.company.datacollections;
+package com.company.bd_datacollections;
 
 import com.company.pub.Utils;
 
